@@ -115,16 +115,16 @@ def split_program_into_lines(program):
                         finalresult = two_operand_sub(intermediateresult, operand3)
                     
                     #addmult
-                    if(operator2 == '*'):
+                    elif(operator2 == '*'):
                         intermediateresult = two_operand_add(operand1, operand2)
                         finalresult = two_operand_mult(intermediateresult, operand3)
                     
                     #adddiv
-                    if(operator2 == '/'):
+                    elif(operator2 == '/'):
                         intermediateresult = two_operand_add(operand1, operand2)
                         finalresult = two_operand_div(intermediateresult, operand3)
                         
-                if (operator1 == '-'):
+                elif (operator1 == '-'):
                     
                     #subadd
                     if(operator2 == '+'):
@@ -132,16 +132,16 @@ def split_program_into_lines(program):
                         finalresult = two_operand_add(intermediateresult, operand3)
                     
                     #submult
-                    if(operator2 == '*'):
+                    elif(operator2 == '*'):
                         intermediateresult = two_operand_sub(operand1, operand2)
                         finalresult = two_operand_mult(intermediateresult, operand3)
                     
                     #subdiv
-                    if(operator2 == '/'):
+                    elif(operator2 == '/'):
                         intermediateresult = two_operand_sub(operand1, operand2)
                         finalresult = two_operand_div(intermediateresult, operand3)
                 
-                if(operator1 == '*'):
+                elif(operator1 == '*'):
                     
                     #multadd
                     if (operator2 == '+'):
@@ -149,16 +149,16 @@ def split_program_into_lines(program):
                         finalresult = two_operand_add(intermediateresult, operand3)
                     
                     #multsub
-                    if(operator2 == '-'):
+                    elif(operator2 == '-'):
                         intermediateresult = two_operand_mult(operand1, operand2)
                         finalresult = two_operand_sub(intermediateresult, operand3)
                     
                     #multdiv
-                    if(operator2 == '/'):
+                    elif(operator2 == '/'):
                         intermediateresult = two_operand_mult(operand1, operand2)
                         finalresult = two_operand_div(intermediateresult, operand3)
                 
-                if (operator1 == '/'):
+                elif (operator1 == '/'):
                     
                     #divadd
                     if(operator2 == '+'):
@@ -166,12 +166,12 @@ def split_program_into_lines(program):
                         finalresult = two_operand_add(intermediateresult, operand3)
                     
                     #divsub
-                    if(operator2 == '-'):
+                    elif(operator2 == '-'):
                         intermediateresult = two_operand_div(operand1, operand2)
                         finalresult = two_operand_sub(intermediateresult, operand3)
                     
                     #divmult
-                    if(operator2 == '*'):
+                    elif(operator2 == '*'):
                         intermediateresult = two_operand_div(operand1, operand2)
                         finalresult = two_operand_mult(intermediateresult, operand3)
             
