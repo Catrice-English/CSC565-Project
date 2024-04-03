@@ -2,8 +2,10 @@
 """
 Created on Tue Mar 26 18:27:14 2024
 
-@author: catri
+@author: Catrice, Nicholas
 """
+
+import re
 
 #set registers
 registers = {
@@ -43,42 +45,90 @@ opcodes = {
     'cmp': '508'
 }
 
+#Map operations to our YMC Address Values
+opcodes = {  
+    'mov': '509',
+    'add': '400',
+    'sub': '401',
+    'mult': '402',
+    'div': '403',
+    'addsub': '404',
+    'addmult': '405',
+    'adddiv': '406',
+    'subadd': '407',
+    'submult': '408',
+    'subdiv': '409',
+    'multadd': '40A',
+    'multsub': '40B',
+    'multdiv': '40C',
+    'divadd': '40D',
+    'divsub': '40E',
+    'divmult': '40F',
+    'addadd': '410',
+    'subsub': '411',
+    'multmult': '412',
+    'divdiv': '413',
+    'jmp': '500',
+    'je': '501',
+    'jne': '502',
+    'jz': '503',
+    'jg': '504',
+    'jge': '505',
+    'jl': '506',
+    'jle': '507',
+    'cmp': '508'
+    
+}
+
 def split_program_into_lines(program):
     # Split the program into lines
     lines = program.splitlines()
-    
-    #split each line into parts with delimiters being whitespace
+
+    # Iterate over each line in the program
     for line in lines:
-        parts = line.split()
         
+        # Tokenize the current line using regular expressions
+        tokens = re.findall(r'[a-zA-Z_]+|[\d]+|[+*/=\-<>]', line)
+        hex_tokens = [convert_operands_to_hex(token) if token.isdigit() \
+                      else token for token in tokens]
+            
+        #remove following - line. Used for debugging and helping think through
+        # the combining of the code.
+        print (hex_tokens)
+        
+        num_tokens = len(tokens)
+        
+        
+        
+        #the below code will compute the end state of each line in the program.
         #count the number of parts in each line to classify which type of
         #operation they belong to.
-        
         #if number of parts is 3 then we know the operation is a mov operation
         # or a compare operation
-        if (len(parts) == 3):
+        if (num_tokens == 3):
             
-            if (parts[1] == '='):
+            if (tokens[1] == '='):
             
                 #moving a value from one register to another register
-                if parts[2].strip() in registers:
-                    registers[parts[0].strip()] = registers[parts[2].strip()]
+                if tokens[2] in registers:
+                    registers[tokens[0]] = registers[tokens[2]]
                     
                 #moving an immediate value into a register
                 else:
-                    registers[parts[0].strip()] = int(parts[2].strip())
+                    hex_token2 = convert_operands_to_hex(int(tokens[2]))
+                    registers[tokens[0]] = hex_token2
         
         
         #if number of parts is 5 then we know the operation is a two operand
         #arithmetic operation or a compare operation.
-        elif (len(parts) == 5):
+        elif (num_tokens == 5):
             
-            operator = parts[3].strip()
-            operand1 = parts[2].strip()
-            operand2 = parts[4].strip()
+            operator = tokens[3]
+            operand1 = tokens[2]
+            operand2 = tokens[4]
             result = 0
             
-            if (parts[1] == '='):
+            if (tokens[1] == '='):
 
                 if (operator == '+'):
                     result = two_operand_add(operand1, operand2)
@@ -93,19 +143,19 @@ def split_program_into_lines(program):
                     result = two_operand_div(operand1, operand2)
 
     
-            registers[parts[0].strip()] = result
+            registers[tokens[0]] = convert_operands_to_hex(result)
         
-        elif (len(parts) == 7):
+        elif (num_tokens == 7):
             
-            operator1 = parts[3].strip()
-            operator2 = parts[5].strip()
-            operand1 = parts[2].strip()
-            operand2 = parts[4].strip()
-            operand3 = parts[6].strip()
+            operator1 = tokens[3]
+            operator2 = tokens[5]
+            operand1 = tokens[2]
+            operand2 = tokens[4]
+            operand3 = tokens[6]
             intermediateresult = 0
             finalresult = 0
             
-            if (parts[1] == '='):
+            if (tokens[1] == '='):
                 
                 if (operator1 == '+'):
                     
@@ -175,62 +225,118 @@ def split_program_into_lines(program):
                         intermediateresult = two_operand_div(operand1, operand2)
                         finalresult = two_operand_mult(intermediateresult, operand3)
             
-            registers[parts[0].strip()] = finalresult
+            registers[tokens[0]] = convert_operands_to_hex(finalresult)
             
             
 
 def two_operand_add(op1, op2):
     if op2 in registers:
-        addresult = registers[op1] + (registers[op2] \
+        addresult = int(registers[op1], 16) + (int(registers[op2], 16) \
         if op1 in registers else int(op1))
     else:
-        addresult = (registers[op1] if op1 in registers else int(op1)) \
+        addresult = (int(registers[op1], 16) if op1 in registers else int(op1)) \
         + int(op2)
     
     return addresult
 
 def two_operand_sub(op1, op2):
     if op2 in registers:
-        subresult = registers[op1] - (registers[op2] \
+        subresult = int(registers[op1], 16) - (int(registers[op2], 16) \
         if op1 in registers else int(op1))
     else:
-        subresult = (registers[op1] if op1 in registers else int(op1)) \
+        subresult = (int(registers[op1], 16) if op1 in registers else int(op1)) \
         - int(op2)
     
     return subresult
 
 def two_operand_mult(op1, op2):
     if op2 in registers:
-        multresult = registers[op1] * (registers[op2] \
+        multresult = int(registers[op1], 16) * (int(registers[op2], 16) \
         if op1 in registers else int(op1))
     else:
-        multresult = (registers[op1] if op1 in registers else int(op1)) \
+        multresult = (int(registers[op1], 16) if op1 in registers else int(op1)) \
         * int(op2)
     
     return multresult
 
 def two_operand_div(op1, op2):
     if op2 in registers:
-        divresult = registers[op1] / (registers[op2] \
+        divresult = int(registers[op1], 16) / (int(registers[op2], 16) \
         if op1 in registers else int(op1))
     else:
-        divresult = (registers[op1] if op1 in registers else int(op1)) \
+        divresult = (int(registers[op1], 16) if op1 in registers else int(op1)) \
         / int(op2)
     
     return divresult
 
 
+#Convert decimal inputs to Hex values
+def convert_operands_to_hex(operand, bit_width=8):
+    max_value = 2 ** bit_width
+    try:
+        #Convert to integer
+        int_value = int(operand)
+        #Check if negative
+        if int_value < 0:
+            # Compute two's complement for negative numbers
+            int_value = max_value + int_value
+        # Convert to hex (without '0x' prefix)
+        hex_value = format(int_value, 'X').zfill(bit_width // 4)  # Each hex digit represents 4 bits
+        return hex_value
+    except ValueError:
+        raise ValueError(f"Invalid operand: {operand}")
+
+
+#Perform the translation
+def translate_to_machine_code(operand1, operator1, operand2, operator2=None, operand3=None):
+    
+    instructions = []
+
+    if operator2:  # If two operations exist
+        #Get the compound operation mnemonic based on the operators
+        operation_mnemonic = operator_to_machine_code.get((operator1, operator2))
+        if not operation_mnemonic:
+            raise ValueError("Unsupported operation pair")
+            
+        #Write storage instructions
+        instructions.extend([
+            f"MOV {registers[0]}, {operand1.zfill(3)}",
+            f"MOV {registers[1]}, {operand2.zfill(3)}",
+            f"MOV {registers[2]}, {operand3.zfill(3)}",
+        ])
+    else:  #If single operation
+        operation_mnemonic = operator_to_machine_code.get(operator1)
+        if not operation_mnemonic:
+            raise ValueError("Unsupported operator")
+            
+        #Write storage instructions
+        instructions.extend([
+            f"MOV {registers[0]}, {operand1.zfill(3)}",
+            f"MOV {registers[1]}, {operand2.zfill(3)}",
+        ])
+
+    #Finalize the instructions to include the operation(s)
+    if operator2:
+        #Two operations
+        instructions.append(f"{operation_mnemonic} {registers[0]}, {registers[1]}, {registers[2]}")
+    else:
+        #Single operation
+        instructions.append(f"{operation_mnemonic} {registers[0]}, {registers[1]}")
+    
+    return '\n'.join(instructions)
+
+
 program = """
-eax = ebx
-ebx = 10
-ecx = ebx
-edx = 300
-ecx = edx
-eax = 10
-eax = eax / 2 * 2
+eax=ebx
+ebx=10
+ecx=ebx
+edx=200
+ecx=edx
+eax=10
+eax=eax-2/ 2
 """
 
 split_program_into_lines(program)
 
-for key, value in registers.items():
-    print(f"{key}: {value}")
+#for key, value in registers.items():
+    #print(f"{key}: {value}")
