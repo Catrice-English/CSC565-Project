@@ -7,12 +7,20 @@ Created on Tue Mar 26 18:27:14 2024
 
 import re
 
-#set registers
+#Registers list
 registers = {
     'eax': 0,
     'ebx': 0,
     'ecx': 0,
     'edx': 0
+}
+
+# Map Registers to addresses
+register_addresses = {
+    'eax': 'F01',
+    'ebx': 'F02',
+    'ecx': 'F03',
+    'edx': 'F04'
 }
 
 #set opcodes
@@ -45,39 +53,28 @@ opcodes = {
     'cmp': '508'
 }
 
-#Map operations to our YMC Address Values
-opcodes = {  
-    'mov': '509',
-    'add': '400',
-    'sub': '401',
-    'mult': '402',
-    'div': '403',
-    'addsub': '404',
-    'addmult': '405',
-    'adddiv': '406',
-    'subadd': '407',
-    'submult': '408',
-    'subdiv': '409',
-    'multadd': '40A',
-    'multsub': '40B',
-    'multdiv': '40C',
-    'divadd': '40D',
-    'divsub': '40E',
-    'divmult': '40F',
-    'addadd': '410',
-    'subsub': '411',
-    'multmult': '412',
-    'divdiv': '413',
-    'jmp': '500',
-    'je': '501',
-    'jne': '502',
-    'jz': '503',
-    'jg': '504',
-    'jge': '505',
-    'jl': '506',
-    'jle': '507',
-    'cmp': '508'
-    
+#Map regular expressions to YMC equivalent
+operator_to_machine_code = { 
+    '+': 'add',
+    '-': 'sub',
+    '*': 'mult',
+    '/': 'div',
+    ('+', '-'): 'addsub',
+    ('+', '+'): 'addadd',
+    ('+', '*'): 'addmult',
+    ('+', '/'): 'adddiv',
+    ('-', '+'): 'subadd',
+    ('-', '*'): 'submult',
+    ('-', '/'): 'subdiv',
+    ('-', '-'): 'subsub',
+    ('*', '+'): 'multadd',
+    ('*', '-'): 'multsub',
+    ('*', '*'): 'multmult',
+    ('*', '/'): 'multdiv',
+    ('/', '+'): 'divadd',
+    ('/', '-'): 'divsub',
+    ('/', '*'): 'divmult',
+    ('/', '/'): 'divdiv',
 }
 
 def split_program_into_lines(program):
@@ -91,20 +88,18 @@ def split_program_into_lines(program):
         tokens = re.findall(r'[a-zA-Z_]+|[\d]+|[+*/=\-<>]', line)
         hex_tokens = [convert_operands_to_hex(token) if token.isdigit() \
                       else token for token in tokens]
-            
-        #remove following - line. Used for debugging and helping think through
-        # the combining of the code.
-        print (hex_tokens)
         
-        num_tokens = len(tokens)
-        
-        
+        #translate line into machine code
+        machine_code_y = translate_to_machine_code(hex_tokens)
+        print(machine_code_y)
         
         #the below code will compute the end state of each line in the program.
         #count the number of parts in each line to classify which type of
         #operation they belong to.
         #if number of parts is 3 then we know the operation is a mov operation
         # or a compare operation
+        
+        num_tokens = len(tokens)
         if (num_tokens == 3):
             
             if (tokens[1] == '='):
@@ -272,71 +267,84 @@ def two_operand_div(op1, op2):
 
 #Convert decimal inputs to Hex values
 def convert_operands_to_hex(operand, bit_width=8):
+    
     max_value = 2 ** bit_width
+    
     try:
         #Convert to integer
         int_value = int(operand)
+        
         #Check if negative
         if int_value < 0:
+            
             # Compute two's complement for negative numbers
             int_value = max_value + int_value
+            
         # Convert to hex (without '0x' prefix)
         hex_value = format(int_value, 'X').zfill(bit_width // 4)  # Each hex digit represents 4 bits
         return hex_value
+
     except ValueError:
         raise ValueError(f"Invalid operand: {operand}")
 
 
 #Perform the translation
-def translate_to_machine_code(operand1, operator1, operand2, operator2=None, operand3=None):
+def translate_to_machine_code(hex_token_list):
     
-    instructions = []
-
-    if operator2:  # If two operations exist
+    instructions=[]
+    
+    # If two operations exist
+    if len(hex_token_list) == 7:
+  
         #Get the compound operation mnemonic based on the operators
-        operation_mnemonic = operator_to_machine_code.get((operator1, operator2))
+        operation_mnemonic = operator_to_machine_code.get((hex_token_list[3],\
+                                                           hex_token_list[5]))
         if not operation_mnemonic:
             raise ValueError("Unsupported operation pair")
             
         #Write storage instructions
         instructions.extend([
-            f"MOV {registers[0]}, {operand1.zfill(3)}",
-            f"MOV {registers[1]}, {operand2.zfill(3)}",
-            f"MOV {registers[2]}, {operand3.zfill(3)}",
-        ])
-    else:  #If single operation
-        operation_mnemonic = operator_to_machine_code.get(operator1)
+            f"MOV {list(registers.keys())[0]}, {hex_token_list[2].zfill(3)}",
+            f"MOV {list(registers.keys())[1]}, {hex_token_list[4].zfill(3)}",
+            f"MOV {list(registers.keys())[2]}, {hex_token_list[2].zfill(3)}",
+            ])
+        
+    #If single operation    
+    elif len(hex_token_list) == 5:
+        operation_mnemonic = operator_to_machine_code.get(hex_token_list[3])
         if not operation_mnemonic:
             raise ValueError("Unsupported operator")
             
         #Write storage instructions
         instructions.extend([
-            f"MOV {registers[0]}, {operand1.zfill(3)}",
-            f"MOV {registers[1]}, {operand2.zfill(3)}",
+        f"MOV {list(registers.keys())[0]}, {hex_token_list[2].zfill(3)}",
+        f"MOV {list(registers.keys())[1]}, {hex_token_list[4].zfill(3)}",
+        ])
+    
+    #mov operation
+    else:
+        instructions.extend([
+        f"MOV {list(registers.keys())[0]}, {hex_token_list[2].zfill(3)}",
         ])
 
     #Finalize the instructions to include the operation(s)
-    if operator2:
-        #Two operations
-        instructions.append(f"{operation_mnemonic} {registers[0]}, {registers[1]}, {registers[2]}")
-    else:
-        #Single operation
-        instructions.append(f"{operation_mnemonic} {registers[0]}, {registers[1]}")
+    #Two operations
+    if len(hex_token_list) == 7:
+        instructions.append(f"{operation_mnemonic} {list(registers.keys())[0]}, \
+                            {list(registers.keys())[1]}, \
+                            {list(registers.keys())[2]}")
+    #Single operation    
+    elif len(hex_token_list) == 5:
+        instructions.append(f"{operation_mnemonic} {list(registers.keys())[0]}, \
+                            {list(registers.keys())[1]}")
     
     return '\n'.join(instructions)
 
 
-program = """
-eax=ebx
-ebx=10
-ecx=ebx
-edx=200
-ecx=edx
-eax=10
-eax=eax-2/ 2
+#main
+program = """ y=2+3-1
+ y=5-10
+ y=5
 """
 
 split_program_into_lines(program)
-
-#for key, value in registers.items():
-    #print(f"{key}: {value}")
