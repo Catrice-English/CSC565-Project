@@ -137,9 +137,6 @@ def split_program_into_lines(program):
                         del int_list[i - 1]
                     i += 1
             
-            print(int_list)
-
-            
             hex_tokens = [convert_operands_to_hex(token) if \
                           isinstance(token, str) and token.isdigit() \
                           else token for token in tokens]
@@ -346,8 +343,6 @@ def determine_overflow_flag(arg_list):
         op3_signed_num = binary_string_to_signed_int(op3_binary)
         result = operator_mapping[operator1](result, op3_signed_num)
 
-    print(result)
-
     if (result < -128 or result > 127):
         flags['overflow'] = 1
     else:
@@ -455,6 +450,3 @@ a = -128 - 1
 """
 
 split_program_into_lines(program)
-
-for key, value in flags.items():
-    print(key, ":", value)
