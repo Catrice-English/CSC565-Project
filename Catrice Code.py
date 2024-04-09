@@ -2,7 +2,7 @@
 """
 Created on Tue Mar 26 18:27:14 2024
 
-@author: Catrice, Nicholas
+@author: Catrice, Nicholas, Ibaad
 """
 #need hex_tokens and convert_to_hex to be able to handle negative numbers
 
@@ -26,13 +26,6 @@ variables_sign_status = {
     'z': None
 }
 
-#Registers list
-registers = {
-    'eax': 0,
-    'ebx': 0,
-    'ecx': 0,
-    'edx': 0
-}
 
 # Map Registers to addresses
 register_addresses = {
@@ -404,9 +397,9 @@ def translate_to_machine_code(hex_token_list):
             
         #Write storage instructions
         instructions.extend([
-            f"MOV {list(registers.keys())[0]}, {hex_token_list[2].zfill(3)}",
-            f"MOV {list(registers.keys())[1]}, {hex_token_list[4].zfill(3)}",
-            f"MOV {list(registers.keys())[2]}, {hex_token_list[2].zfill(3)}",
+            f"MOV {list(register_addresses.keys())[0]}, {hex_token_list[2].zfill(3)}",
+            f"MOV {list(register_addresses.keys())[1]}, {hex_token_list[4].zfill(3)}",
+            f"MOV {list(register_addresses.keys())[2]}, {hex_token_list[2].zfill(3)}",
             ])
         
     #If single operation    
@@ -417,26 +410,26 @@ def translate_to_machine_code(hex_token_list):
             
         #Write storage instructions
         instructions.extend([
-        f"MOV {list(registers.keys())[0]}, {hex_token_list[2].zfill(3)}",
-        f"MOV {list(registers.keys())[1]}, {hex_token_list[4].zfill(3)}",
+        f"MOV {list(register_addresses.keys())[0]}, {hex_token_list[2].zfill(3)}",
+        f"MOV {list(register_addresses.keys())[1]}, {hex_token_list[4].zfill(3)}",
         ])
     
     #mov operation
     elif len(hex_token_list) == 3:
         instructions.extend([
-        f"MOV {list(registers.keys())[0]}, {hex_token_list[2].zfill(3)}",
+        f"MOV {list(register_addresses.keys())[0]}, {hex_token_list[2].zfill(3)}",
         ])
 
     #Finalize the instructions to include the operation(s)
     #Two operations
     if len(hex_token_list) == 7:
-        instructions.append(f"{operation_mnemonic} {list(registers.keys())[0]}, \
-                            {list(registers.keys())[1]}, \
-                            {list(registers.keys())[2]}")
+        instructions.append(f"{operation_mnemonic} {list(register_addresses.keys())[0]}, \
+                            {list(register_addresses.keys())[1]}, \
+                            {list(register_addresses.keys())[2]}")
     #Single operation    
     elif len(hex_token_list) == 5:
-        instructions.append(f"{operation_mnemonic} {list(registers.keys())[0]}, \
-                            {list(registers.keys())[1]}")
+        instructions.append(f"{operation_mnemonic} {list(register_addresses.keys())[0]}, \
+                            {list(register_addresses.keys())[1]}")
     
     return '\n'.join(instructions)
 
@@ -444,9 +437,9 @@ def translate_to_machine_code(hex_token_list):
 #main
 program = """ unsigned a, b, c
 signed a
-unsigned x, y
 signed z
-a = -128 - 1
+a = 5*2
+unsigned x, y
 """
 
 split_program_into_lines(program)
