@@ -553,8 +553,7 @@ def csv_output(input_line, token_hex_list):
             
             #new line between each new command for readability    
             writer.writerow('')
-            
-            #
+
 
 def file_input(file_name):
    
