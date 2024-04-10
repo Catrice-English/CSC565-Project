@@ -134,18 +134,21 @@ def main_split(line):
         #determine appropriate arithmetic to perform based on number of operands
         if (number_integers == 2):
             result = two_operand_arithmetic(integer_list)
-        else:
+        elif (number_integers == 3):
             result = three_operand_arithmetic(integer_list)
+        else: #mov operation
+            result = integer_list[2]
         
         #assign result to variable in variable_values dictionary
         if tokens[0] in variable_values:
             variable_values[tokens[0]] = result
                 
-        #set flags
-        determine_carry_flag(result)
-        determine_sign_flag(result)
-        determine_zero_flag(result)
-        determine_overflow_flag(integer_list)
+        #set flags if arithmetic 
+        if(number_integers == 2 or number_integers == 3):
+            determine_carry_flag(result)
+            determine_sign_flag(result)
+            determine_zero_flag(result)
+            determine_overflow_flag(integer_list)
     
         #print HLC        
         print(line)
@@ -158,7 +161,8 @@ def main_split(line):
         print(machine_code_y)
         
         #print relevant dictionaries
-        print(flags)
+        if(number_integers == 2 or number_integers == 3):
+            print(flags)
         
         #print names of registers that were altered
         print("modified registers:", end=' ')
