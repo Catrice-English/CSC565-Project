@@ -128,6 +128,8 @@ def main(program):
         #translate to machine code
         machine_code_y = translate_to_machine_code(tokens)
         print(machine_code_y)
+        
+        #print relevant dictionaries
         print(flags)
         print("modified registers ----")
         print ("\n")
