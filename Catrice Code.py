@@ -17,16 +17,16 @@ flags = {
     'overflow': 0
 }
 
-#register values
+#first column is mapping and second item in the list is the value of the register
 registers = {
-    'eax': None,
-    'ebx': None,
-    'ecx': None,
-    'edx': None
+    'eax': ['F01', None],
+    'ebx': ['F02', None],
+    'ecx': ['F03', None],
+    'edx': ['F04', None]
 }
 
-#variable values - first column is memory address, second column is value of
-#variable, third column is variables sign status
+#variable values - first item in list is memory address, second item is value of
+#variable, third item is variables sign status.
 variable_values = {
     'a': ['000', None, None],
     'b': ['001', None, None],
@@ -36,14 +36,6 @@ variable_values = {
     'z': ['005', None, None]
 }
 
-
-# Map Registers to addresses
-register_addresses = {
-    'eax': 'F01',
-    'ebx': 'F02',
-    'ecx': 'F03',
-    'edx': 'F04'
-}
 
 #set opcodes
 opcodes = {
@@ -141,7 +133,7 @@ def main_split(line):
             determine_sign_flag(result)
             determine_zero_flag(result)
             determine_overflow_flag(integer_list)
-    
+        
         #print HLC        
         print(line)
         
@@ -159,7 +151,7 @@ def main_split(line):
         #print names of registers that were altered
         print("modified registers:", end=' ')
         for key, value in registers.items():
-            if value is not None:
+            if value[1] is not None:
                 print(key, end=', ')
                 
         print ("\n")
@@ -169,8 +161,7 @@ def main_split(line):
     
     #reset the registers
     for items in registers:
-        registers[items] = None
-
+        registers[items][1] = None
 
 #function for variable declaration line
 def signed_unsigned(list_tokens):
@@ -186,8 +177,8 @@ def move_mem_register(list_tokens):
     for i in range(2, len(list_tokens)):
         if list_tokens[i] in variable_values:
             for register_name in registers:
-                if registers[register_name] is None:
-                    registers[register_name] = variable_values[list_tokens[i]][1]
+                if registers[register_name][1] is None:
+                    registers[register_name][1] = variable_values[list_tokens[i]][1]
                     list_tokens[i] = str(variable_values[list_tokens[i]][1])
                     break    
                 
@@ -221,25 +212,25 @@ def not_signed_unsigned(list_tokens):
 def two_operand_arithmetic(integer_list):
             
     operator = integer_list[3]
-    registers['eax'] = integer_list[2]
-    registers['ebx'] = integer_list[4]
+    registers['eax'][1] = integer_list[2]
+    registers['ebx'][1] = integer_list[4]
     result = 0
     
     if (integer_list[1] == '='):
 
         if (operator == '+'):
-            result = two_operand_add(registers['eax'], registers['ebx'])
+            result = two_operand_add(registers['eax'][1], registers['ebx'][1])
                         
         elif (operator == '-'):
-            result = two_operand_sub(registers['eax'], registers['ebx'])
+            result = two_operand_sub(registers['eax'][1], registers['ebx'][1])
                         
         elif (operator == '*'):
-            result = two_operand_mult(registers['eax'], registers['ebx'])
+            result = two_operand_mult(registers['eax'][1], registers['ebx'][1])
                         
         elif (operator == '/'):
-            result = two_operand_div(registers['eax'], registers['ebx'])
+            result = two_operand_div(registers['eax'][1], registers['ebx'][1])
     
-    registers['ebx'] = result
+    registers['ebx'][1] = result
     return round(result)
                 
  
@@ -247,9 +238,9 @@ def three_operand_arithmetic(integer_list):
                 
     operator1 = integer_list[3]
     operator2 = integer_list[5]
-    registers['eax'] = integer_list[2]
-    registers['ebx'] = integer_list[4]
-    registers['ecx'] = integer_list[6]
+    registers['eax'][1] = integer_list[2]
+    registers['ebx'][1] = integer_list[4]
+    registers['ecx'][1] = integer_list[6]
     intermediateresult = 0
     finalresult = 0
     
@@ -259,83 +250,83 @@ def three_operand_arithmetic(integer_list):
             
             #addsub
             if(operator2 == '-'):
-                intermediateresult = two_operand_add(registers['eax'], registers['ebx'])
-                registers['eax'] = intermediateresult
-                finalresult = two_operand_sub(registers['eax'], registers['ecx'])
+                intermediateresult = two_operand_add(registers['eax'][1], registers['ebx'][1])
+                registers['eax'][1] = intermediateresult
+                finalresult = two_operand_sub(registers['eax'][1], registers['ecx'][1])
             
             #addmult
             elif(operator2 == '*'):
-                intermediateresult = two_operand_add(registers['eax'], registers['ebx'])
-                registers['eax'] = intermediateresult
-                finalresult = two_operand_mult(registers['eax'], registers['ecx'])
+                intermediateresult = two_operand_add(registers['eax'][1], registers['ebx'][1])
+                registers['eax'][1] = intermediateresult
+                finalresult = two_operand_mult(registers['eax'][1], registers['ecx'][1])
             
             #adddiv
             elif(operator2 == '/'):
-                intermediateresult = two_operand_add(registers['eax'], registers['ebx'])
-                registers['eax'] = intermediateresult
-                finalresult = two_operand_div(registers['eax'], registers['ecx'])
+                intermediateresult = two_operand_add(registers['eax'][1], registers['ebx'][1])
+                registers['eax'][1] = intermediateresult
+                finalresult = two_operand_div(registers['eax'][1], registers['ecx'][1])
                 
         elif (operator1 == '-'):
             
             #subadd
             if(operator2 == '+'):
-                intermediateresult = two_operand_sub(registers['eax'], registers['ebx'])
-                registers['eax'] = intermediateresult
-                finalresult = two_operand_add(registers['eax'], registers['ecx'])
+                intermediateresult = two_operand_sub(registers['eax'][1], registers['ebx'][1])
+                registers['eax'][1]= intermediateresult
+                finalresult = two_operand_add(registers['eax'][1], registers['ecx'][1])
             
             #submult
             elif(operator2 == '*'):
-                intermediateresult = two_operand_sub(registers['eax'], registers['ebx'])
-                registers['eax'] = intermediateresult
-                finalresult = two_operand_mult(registers['eax'], registers['ecx'])
+                intermediateresult = two_operand_sub(registers['eax'][1], registers['ebx'][1])
+                registers['eax'][1] = intermediateresult
+                finalresult = two_operand_mult(registers['eax'][1], registers['ecx'][1])
             
             #subdiv
             elif(operator2 == '/'):
-                intermediateresult = two_operand_sub(registers['eax'], registers['ebx'])
-                registers['eax'] = intermediateresult
-                finalresult = two_operand_div(registers['eax'], registers['ecx'])
+                intermediateresult = two_operand_sub(registers['eax'][1], registers['ebx'][1])
+                registers['eax'][1] = intermediateresult
+                finalresult = two_operand_div(registers['eax'][1], registers['ecx'][1])
         
         elif(operator1 == '*'):
             
             #multadd
             if (operator2 == '+'):
-                intermediateresult = two_operand_mult(registers['eax'], registers['ebx'])
-                registers['eax'] = intermediateresult
-                finalresult = two_operand_add(registers['eax'], registers['ecx'])
+                intermediateresult = two_operand_mult(registers['eax'][1], registers['ebx'][1])
+                registers['eax'][1] = intermediateresult
+                finalresult = two_operand_add(registers['eax'][1], registers['ecx'][1])
             
             #multsub
             elif(operator2 == '-'):
-                intermediateresult = two_operand_mult(registers['eax'], registers['ebx'])
-                registers['eax'] = intermediateresult
-                finalresult = two_operand_sub(registers['eax'], registers['ecx'])
+                intermediateresult = two_operand_mult(registers['eax'][1], registers['ebx'][1])
+                registers['eax'][1] = intermediateresult
+                finalresult = two_operand_sub(registers['eax'][1], registers['ecx'][1])
             
             #multdiv
             elif(operator2 == '/'):
-                intermediateresult = two_operand_mult(registers['eax'], registers['ebx'])
-                registers['eax'] = intermediateresult
-                finalresult = two_operand_div(registers['eax'], registers['ecx'])
+                intermediateresult = two_operand_mult(registers['eax'][1], registers['ebx'][1])
+                registers['eax'][1] = intermediateresult
+                finalresult = two_operand_div(registers['eax'][1], registers['ecx'][1])
         
         elif (operator1 == '/'):
             
             #divadd
             if(operator2 == '+'):
-                intermediateresult = two_operand_div(registers['eax'], registers['ebx'])
-                registers['eax'] = intermediateresult
-                finalresult = two_operand_add(registers['eax'], registers['ecx'])
+                intermediateresult = two_operand_div(registers['eax'][1], registers['ebx'][1])
+                registers['eax'][1] = intermediateresult
+                finalresult = two_operand_add(registers['eax'][1], registers['ecx'][1])
             
             #divsub
             elif(operator2 == '-'):
-                intermediateresult = two_operand_div(registers['eax'], registers['ebx'])
-                registers['eax'] = intermediateresult
-                finalresult = two_operand_sub(registers['eax'], registers['ecx'])
+                intermediateresult = two_operand_div(registers['eax'][1], registers['ebx'][1])
+                registers['eax'][1] = intermediateresult
+                finalresult = two_operand_sub(registers['eax'][1], registers['ecx'][1])
             
             #divmult
             elif(operator2 == '*'):
-                intermediateresult = two_operand_div(registers['eax'], registers['ebx'])
-                registers['eax'] = intermediateresult
-                finalresult = two_operand_mult(registers['eax'], registers['ecx'])
+                intermediateresult = two_operand_div(registers['eax'][1], registers['ebx'][1])
+                registers['eax'][1] = intermediateresult
+                finalresult = two_operand_mult(registers['eax'][1], registers['ecx'][1])
     
-    registers['eax'] = finalresult
+    registers['eax'][1] = finalresult
     return round(finalresult)
                     
 
@@ -510,12 +501,12 @@ def translate_to_machine_code(hex_token_list):
     #Finalize the instructions to include the operation(s)
     #Two operations
     if len(hex_token_list) == 7:
-        instructions.append(f"{operation_mnemonic} {list(register_addresses.keys())[0]}, \
+        instructions.append(f"{operation_mnemonic} {list(registers.keys())[0]}, \
                             {list(registers.keys())[1]}, \
                             {list(registers.keys())[2]}")
     #Single operation    
     elif len(hex_token_list) == 5:
-        instructions.append(f"{operation_mnemonic} {list(register_addresses.keys())[0]}, \
+        instructions.append(f"{operation_mnemonic} {list(registers.keys())[0]}, \
                             {list(registers.keys())[1]}")
     
     return '\n'.join(instructions)
@@ -532,7 +523,7 @@ def csv_output(input_line, token_hex_list):
         
         #write HLC to CSV
         writer.writerow([input_line])
-        
+
         #token_hex_list None if blank line
         if token_hex_list is not None:
             
@@ -545,7 +536,7 @@ def csv_output(input_line, token_hex_list):
                 writer.writerow([f'{key}: {value}'])
                 
             #Write modified registers to CSV
-            modified_registers_line = ", ".join(key for key, value in registers.items() if value is not None)
+            modified_registers_line = ", ".join(key for key, value in registers.items() if value[1] is not None)
             writer.writerow(["Modified registers: " + modified_registers_line])
             
             #new line between each new command for readability    
