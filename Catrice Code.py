@@ -117,12 +117,17 @@ def main_split(line):
     
     # Tokenize the current line using regular expressions
     tokens = re.findall(r'[a-zA-Z_]+|[\d]+|[+*/=\-<>]', line)
-
     
+    #if blank line
+    if len(tokens) == 0:
+        hex_tokens = None
+        
     #determine if line is variable declaration or arithmetic line
-    if tokens[0] in ['unsigned', 'signed']:
+    elif tokens[0] in ['unsigned', 'signed']:
         signed_unsigned(tokens)
-           
+        hex_tokens = None
+
+        
     else:
 
         #move variable from memory to register for computation
@@ -147,26 +152,26 @@ def main_split(line):
         determine_zero_flag(result)
         determine_overflow_flag(integer_list)
     
-    #print HLC        
-    print(line)
-    
-    #translate to machine code
-    hex_tokens = [convert_operands_to_hex(token) if \
-                  isinstance(token, str) and token.isdigit() \
-                  else token for token in tokens]
-    machine_code_y = translate_to_machine_code(hex_tokens)
-    print(machine_code_y)
-    
-    #print relevant dictionaries
-    print(flags)
-    
-    #print names of registers that were altered
-    print("modified registers:", end=' ')
-    for key, value in registers.items():
-        if value is not None:
-            print(key, end=', ')
-            
-    print ("\n")
+        #print HLC        
+        print(line)
+        
+        #translate to machine code
+        hex_tokens = [convert_operands_to_hex(token) if \
+                      isinstance(token, str) and token.isdigit() \
+                      else token for token in tokens]
+        machine_code_y = translate_to_machine_code(hex_tokens)
+        print(machine_code_y)
+        
+        #print relevant dictionaries
+        print(flags)
+        
+        #print names of registers that were altered
+        print("modified registers:", end=' ')
+        for key, value in registers.items():
+            if value is not None:
+                print(key, end=', ')
+                
+        print ("\n")
     
     #output to csv
     csv_output(line, hex_tokens)
@@ -536,15 +541,17 @@ def csv_output(input_line, token_hex_list):
         writer = csv.writer(csv_file)
         
         #write HLC to CSV
-        writer.writerow(input_line)
+        writer.writerow([input_line])
         
-        #write YMC assembly language to CSV
-        machine_code_y = translate_to_machine_code(token_hex_list)
-        writer.writerow(machine_code_y)
+        if token_hex_list is not None:
+            
+            #write YMC assembly language to CSV
+            machine_code_y = translate_to_machine_code(token_hex_list)
+            writer.writerow(machine_code_y)
         
-        #write flag values to CSV
-        for key, value in flags.items():
-            writer.writerow([f'{key}: {value}'])
+            #write flag values to CSV
+            for key, value in flags.items():
+                writer.writerow([f'{key}: {value}'])
 
 def file_input(file_name):
    
@@ -553,7 +560,7 @@ def file_input(file_name):
         
         # Read the file line by line
         for a_line in file:
-           main_split(a_line)
+           main_split(a_line.rstrip('\n'))
 
 #this program code is used for testing purposes only
 program = """a = 16+7
