@@ -109,12 +109,7 @@ operator_to_machine_code = {
 }
 
 def main_split(line):
-    # Split the program into lines
-    #lines = program.splitlines()
 
-    # Iterate over each line in the program
-    #for line in lines:
-    
     # Tokenize the current line using regular expressions
     tokens = re.findall(r'[a-zA-Z_]+|[\d]+|[+*/=\-<>]', line)
     
@@ -122,12 +117,12 @@ def main_split(line):
     if len(tokens) == 0:
         hex_tokens = None
         
-    #determine if line is variable declaration or arithmetic line
+    #determine if line is variable declaration line
     elif tokens[0] in ['unsigned', 'signed']:
         signed_unsigned(tokens)
         hex_tokens = None
 
-        
+    #line is an arithmetic line    
     else:
 
         #move variable from memory to register for computation
