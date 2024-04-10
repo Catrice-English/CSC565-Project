@@ -114,8 +114,6 @@ def main_split(program):
     # Iterate over each line in the program
     for line in lines:
         
-        print(line)
-        
         # Tokenize the current line using regular expressions
         tokens = re.findall(r'[a-zA-Z_]+|[\d]+|[+*/=\-<>]', line)
 
@@ -148,6 +146,8 @@ def main_split(program):
             determine_zero_flag(result)
             determine_overflow_flag(integer_list)
         
+        #print HLC        
+        print(line)
         
         #translate to machine code
         hex_tokens = [convert_operands_to_hex(token) if \
@@ -523,7 +523,7 @@ def translate_to_machine_code(hex_token_list):
 
 
 #main
-program = """a = 16+7/3
+program = """a = 16+7
 b = 16-2*32
 c = 7+6-3
 a = a+b-c
