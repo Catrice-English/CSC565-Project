@@ -107,7 +107,7 @@ operator_to_machine_code = {
     ('/', '/'): 'divdiv',
 }
 
-def main(program):
+def main_split(program):
     # Split the program into lines
     lines = program.splitlines()
 
@@ -118,15 +118,33 @@ def main(program):
         
         # Tokenize the current line using regular expressions
         tokens = re.findall(r'[a-zA-Z_]+|[\d]+|[+*/=\-<>]', line)
+
         
         #determine if line is variable declaration or arithmetic line
-        if (tokens[0] == 'unsigned' or 'signed'):
+        if tokens[0] in ['unsigned', 'signed']:
             signed_unsigned(tokens)
+               
         else:
-            not_signed_unsigned(tokens)
+            integer_list, number_integers = not_signed_unsigned(tokens)
+                
+             #determine appropriate arithmetic to perform based on number of operands
+            if (number_integers == 2):
+                result = two_operand_arithmetic(integer_list)
+            else:
+                result = three_operand_arithmetic(integer_list)
+            
+            #set flags
+            determine_carry_flag(result)
+            determine_sign_flag(result)
+            determine_zero_flag(result)
+            determine_overflow_flag(integer_list)
+        
         
         #translate to machine code
-        machine_code_y = translate_to_machine_code(tokens)
+        hex_tokens = [convert_operands_to_hex(token) if \
+                      isinstance(token, str) and token.isdigit() \
+                      else token for token in tokens]
+        machine_code_y = translate_to_machine_code(hex_tokens)
         print(machine_code_y)
         
         #print relevant dictionaries
@@ -148,7 +166,6 @@ def not_signed_unsigned(list_tokens):
     #count number of integers in token list.
     int_list = [int(x) if x.isdigit() else x for x in list_tokens]
     num_integers = sum(isinstance(x, int) for x in int_list)
- 
     
     #look up variables sign status
     variable_sign = variables_sign_status[list_tokens[0]]
@@ -163,125 +180,116 @@ def not_signed_unsigned(list_tokens):
                 int_list[i] = neg_num
                 del int_list[i - 1]
             i += 1
-            
-    #determine appropriate arithmetic to perform based on number of operands
-    if (num_integers == 2):
-        two_operand_arithmetic(int_list)
-    else:
-        three_operand_arithmetic(int_list)
+    
+    return int_list, num_integers
+    
         
  
 def two_operand_arithmetic(integer_list):
             
-        operator = integer_list[3]
-        operand1 = integer_list[2]
-        operand2 = integer_list[4]
-        result = 0
-        
-        if (integer_list[1] == '='):
-
-            if (operator == '+'):
-                result = two_operand_add(operand1, operand2)
-                            
-            elif (operator == '-'):
-                result = two_operand_sub(operand1, operand2)
-                            
-            elif (operator == '*'):
-                result = two_operand_mult(operand1, operand2)
-                            
-            elif (operator == '/'):
-                result = two_operand_div(operand1, operand2)
-                
-        determine_carry_flag(result)
-        determine_sign_flag(result)
-        determine_zero_flag(result)
-        determine_overflow_flag(integer_list)
+    operator = integer_list[3]
+    operand1 = integer_list[2]
+    operand2 = integer_list[4]
+    result = 0
     
+    if (integer_list[1] == '='):
+
+        if (operator == '+'):
+            result = two_operand_add(operand1, operand2)
+                        
+        elif (operator == '-'):
+            result = two_operand_sub(operand1, operand2)
+                        
+        elif (operator == '*'):
+            result = two_operand_mult(operand1, operand2)
+                        
+        elif (operator == '/'):
+            result = two_operand_div(operand1, operand2)
+    
+    return result
+                
  
 def three_operand_arithmetic(integer_list):
                 
-        operator1 = integer_list[3]
-        operator2 = integer_list[5]
-        operand1 = integer_list[2]
-        operand2 = integer_list[4]
-        operand3 = integer_list[6]
-        intermediateresult = 0
-        finalresult = 0
-        
-        if (integer_list[1] == '='):
-            
-            if (operator1 == '+'):
-                
-                #addsub
-                if(operator2 == '-'):
-                    intermediateresult = two_operand_add(operand1, operand2)
-                    finalresult = two_operand_sub(intermediateresult, operand3)
-                
-                #addmult
-                elif(operator2 == '*'):
-                    intermediateresult = two_operand_add(operand1, operand2)
-                    finalresult = two_operand_mult(intermediateresult, operand3)
-                
-                #adddiv
-                elif(operator2 == '/'):
-                    intermediateresult = two_operand_add(operand1, operand2)
-                    finalresult = two_operand_div(intermediateresult, operand3)
-                    
-            elif (operator1 == '-'):
-                
-                #subadd
-                if(operator2 == '+'):
-                    intermediateresult = two_operand_sub(operand1, operand2)
-                    finalresult = two_operand_add(intermediateresult, operand3)
-                
-                #submult
-                elif(operator2 == '*'):
-                    intermediateresult = two_operand_sub(operand1, operand2)
-                    finalresult = two_operand_mult(intermediateresult, operand3)
-                
-                #subdiv
-                elif(operator2 == '/'):
-                    intermediateresult = two_operand_sub(operand1, operand2)
-                    finalresult = two_operand_div(intermediateresult, operand3)
-            
-            elif(operator1 == '*'):
-                
-                #multadd
-                if (operator2 == '+'):
-                    intermediateresult = two_operand_mult(operand1, operand2)
-                    finalresult = two_operand_add(intermediateresult, operand3)
-                
-                #multsub
-                elif(operator2 == '-'):
-                    intermediateresult = two_operand_mult(operand1, operand2)
-                    finalresult = two_operand_sub(intermediateresult, operand3)
-                
-                #multdiv
-                elif(operator2 == '/'):
-                    intermediateresult = two_operand_mult(operand1, operand2)
-                    finalresult = two_operand_div(intermediateresult, operand3)
-            
-            elif (operator1 == '/'):
-                
-                #divadd
-                if(operator2 == '+'):
-                    intermediateresult = two_operand_div(operand1, operand2)
-                    finalresult = two_operand_add(intermediateresult, operand3)
-                
-                #divsub
-                elif(operator2 == '-'):
-                    intermediateresult = two_operand_div(operand1, operand2)
-                    finalresult = two_operand_sub(intermediateresult, operand3)
-                
-                #divmult
-                elif(operator2 == '*'):
-                    intermediateresult = two_operand_div(operand1, operand2)
-                    finalresult = two_operand_mult(intermediateresult, operand3)
+    operator1 = integer_list[3]
+    operator2 = integer_list[5]
+    operand1 = integer_list[2]
+    operand2 = integer_list[4]
+    operand3 = integer_list[6]
+    intermediateresult = 0
+    finalresult = 0
     
-        determine_carry_flag(finalresult)
-        determine_sign_flag(finalresult)
-        determine_zero_flag(finalresult)
-        determine_overflow_flag(integer_list)
+    if (integer_list[1] == '='):
+        
+        if (operator1 == '+'):
+            
+            #addsub
+            if(operator2 == '-'):
+                intermediateresult = two_operand_add(operand1, operand2)
+                finalresult = two_operand_sub(intermediateresult, operand3)
+            
+            #addmult
+            elif(operator2 == '*'):
+                intermediateresult = two_operand_add(operand1, operand2)
+                finalresult = two_operand_mult(intermediateresult, operand3)
+            
+            #adddiv
+            elif(operator2 == '/'):
+                intermediateresult = two_operand_add(operand1, operand2)
+                finalresult = two_operand_div(intermediateresult, operand3)
+                
+        elif (operator1 == '-'):
+            
+            #subadd
+            if(operator2 == '+'):
+                intermediateresult = two_operand_sub(operand1, operand2)
+                finalresult = two_operand_add(intermediateresult, operand3)
+            
+            #submult
+            elif(operator2 == '*'):
+                intermediateresult = two_operand_sub(operand1, operand2)
+                finalresult = two_operand_mult(intermediateresult, operand3)
+            
+            #subdiv
+            elif(operator2 == '/'):
+                intermediateresult = two_operand_sub(operand1, operand2)
+                finalresult = two_operand_div(intermediateresult, operand3)
+        
+        elif(operator1 == '*'):
+            
+            #multadd
+            if (operator2 == '+'):
+                intermediateresult = two_operand_mult(operand1, operand2)
+                finalresult = two_operand_add(intermediateresult, operand3)
+            
+            #multsub
+            elif(operator2 == '-'):
+                intermediateresult = two_operand_mult(operand1, operand2)
+                finalresult = two_operand_sub(intermediateresult, operand3)
+            
+            #multdiv
+            elif(operator2 == '/'):
+                intermediateresult = two_operand_mult(operand1, operand2)
+                finalresult = two_operand_div(intermediateresult, operand3)
+        
+        elif (operator1 == '/'):
+            
+            #divadd
+            if(operator2 == '+'):
+                intermediateresult = two_operand_div(operand1, operand2)
+                finalresult = two_operand_add(intermediateresult, operand3)
+            
+            #divsub
+            elif(operator2 == '-'):
+                intermediateresult = two_operand_div(operand1, operand2)
+                finalresult = two_operand_sub(intermediateresult, operand3)
+            
+            #divmult
+            elif(operator2 == '*'):
+                intermediateresult = two_operand_div(operand1, operand2)
+                finalresult = two_operand_mult(intermediateresult, operand3)
+    
+    return finalresult
                     
 
 def two_operand_add(op1, op2):
@@ -473,4 +481,4 @@ b = 16-2*32
 c = 7+6-3
 """
 
-main(program)
+main_split(program)
