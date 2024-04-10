@@ -7,6 +7,7 @@ Created on Tue Mar 26 18:27:14 2024
 #need hex_tokens and convert_to_hex to be able to handle negative numbers
 
 import re
+import csv
 
 #set flags
 flags = {
@@ -107,69 +108,72 @@ operator_to_machine_code = {
     ('/', '/'): 'divdiv',
 }
 
-def main_split(program):
+def main_split(line):
     # Split the program into lines
-    lines = program.splitlines()
+    #lines = program.splitlines()
 
     # Iterate over each line in the program
-    for line in lines:
-        
-        # Tokenize the current line using regular expressions
-        tokens = re.findall(r'[a-zA-Z_]+|[\d]+|[+*/=\-<>]', line)
+    #for line in lines:
+    
+    # Tokenize the current line using regular expressions
+    tokens = re.findall(r'[a-zA-Z_]+|[\d]+|[+*/=\-<>]', line)
 
+    
+    #determine if line is variable declaration or arithmetic line
+    if tokens[0] in ['unsigned', 'signed']:
+        signed_unsigned(tokens)
+           
+    else:
+
+        #move variable from memory to register for computation
+        tokens = move_mem_register(tokens)
         
-        #determine if line is variable declaration or arithmetic line
-        if tokens[0] in ['unsigned', 'signed']:
-            signed_unsigned(tokens)
-               
+        #if line read in is not a variable declaration line
+        integer_list, number_integers = not_signed_unsigned(tokens)
+        
+        #determine appropriate arithmetic to perform based on number of operands
+        if (number_integers == 2):
+            result = two_operand_arithmetic(integer_list)
         else:
-
-            #move variable from memory to register for computation
-            tokens = move_mem_register(tokens)
-            
-            #if line read in is not a variable declaration line
-            integer_list, number_integers = not_signed_unsigned(tokens)
-            
-            #determine appropriate arithmetic to perform based on number of operands
-            if (number_integers == 2):
-                result = two_operand_arithmetic(integer_list)
-            else:
-                result = three_operand_arithmetic(integer_list)
-            
-            #assign result to variable in variable_values dictionary
-            if tokens[0] in variable_values:
-                variable_values[tokens[0]] = result
-                    
-            #set flags
-            determine_carry_flag(result)
-            determine_sign_flag(result)
-            determine_zero_flag(result)
-            determine_overflow_flag(integer_list)
+            result = three_operand_arithmetic(integer_list)
         
-        #print HLC        
-        print(line)
-        
-        #translate to machine code
-        hex_tokens = [convert_operands_to_hex(token) if \
-                      isinstance(token, str) and token.isdigit() \
-                      else token for token in tokens]
-        machine_code_y = translate_to_machine_code(hex_tokens)
-        print(machine_code_y)
-        
-        #print relevant dictionaries
-        print(flags)
-        
-        #print names of registers that were altered
-        print("modified registers:", end=' ')
-        for key, value in registers.items():
-            if value is not None:
-                print(key, end=', ')
+        #assign result to variable in variable_values dictionary
+        if tokens[0] in variable_values:
+            variable_values[tokens[0]] = result
                 
-        print ("\n")
-        
-        #reset the registers
-        for items in registers:
-            registers[items] = None
+        #set flags
+        determine_carry_flag(result)
+        determine_sign_flag(result)
+        determine_zero_flag(result)
+        determine_overflow_flag(integer_list)
+    
+    #print HLC        
+    print(line)
+    
+    #translate to machine code
+    hex_tokens = [convert_operands_to_hex(token) if \
+                  isinstance(token, str) and token.isdigit() \
+                  else token for token in tokens]
+    machine_code_y = translate_to_machine_code(hex_tokens)
+    print(machine_code_y)
+    
+    #print relevant dictionaries
+    print(flags)
+    
+    #print names of registers that were altered
+    print("modified registers:", end=' ')
+    for key, value in registers.items():
+        if value is not None:
+            print(key, end=', ')
+            
+    print ("\n")
+    
+    #output to csv
+    csv_output(line, hex_tokens)
+    
+    #reset the registers
+    for items in registers:
+        registers[items] = None
 
 
 #function for variable declaration line
@@ -522,11 +526,44 @@ def translate_to_machine_code(hex_token_list):
     return '\n'.join(instructions)
 
 
-#main
+def csv_output(input_line, token_hex_list):
+    
+    file_name = 'output.csv'
+    
+    with open(file_name, 'a', newline='') as csv_file:
+        
+        # Create a CSV writer object
+        writer = csv.writer(csv_file)
+        
+        #write HLC to CSV
+        writer.writerow(input_line)
+        
+        #write YMC assembly language to CSV
+        machine_code_y = translate_to_machine_code(token_hex_list)
+        writer.writerow(machine_code_y)
+        
+        #write flag values to CSV
+        for key, value in flags.items():
+            writer.writerow([f'{key}: {value}'])
+
+def file_input(file_name):
+   
+    # Open the file for reading
+    with open(file_name, 'r') as file:
+        
+        # Read the file line by line
+        for a_line in file:
+           main_split(a_line)
+
+#this program code is used for testing purposes only
 program = """a = 16+7
 b = 16-2*32
 c = 7+6-3
 a = a+b-c
 """
 
-main_split(program)
+#file with code that will be parsed
+file = 'input_text.txt'
+file_input(file)
+
+#main_split(program)
