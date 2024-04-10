@@ -158,7 +158,13 @@ def main_split(program):
         
         #print relevant dictionaries
         print(flags)
-        print("modified registers ----")
+        
+        #print names of registers that were altered
+        print("modified registers:", end=' ')
+        for key, value in registers.items():
+            if value is not None:
+                print(key, end=', ')
+                
         print ("\n")
         
         #reset the registers
