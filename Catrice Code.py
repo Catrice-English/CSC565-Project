@@ -127,7 +127,7 @@ def main_split(program):
         else:
             integer_list, number_integers = not_signed_unsigned(tokens)
                 
-             #determine appropriate arithmetic to perform based on number of operands
+            #determine appropriate arithmetic to perform based on number of operands
             if (number_integers == 2):
                 result = two_operand_arithmetic(integer_list)
             else:
@@ -153,6 +153,7 @@ def main_split(program):
         print ("\n")
 
 
+#function for variable declaration line
 def signed_unsigned(list_tokens):
     
     for i in range(1, len(list_tokens)):
@@ -161,6 +162,7 @@ def signed_unsigned(list_tokens):
             variables_sign_status[variable_name] = list_tokens[0]  
             
 
+#function if line read in is not a variable declaration line
 def not_signed_unsigned(list_tokens):                
                 
     #count number of integers in token list.
