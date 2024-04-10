@@ -552,6 +552,9 @@ def csv_output(input_line, token_hex_list):
             #write flag values to CSV
             for key, value in flags.items():
                 writer.writerow([f'{key}: {value}'])
+                
+            #new line between each new command for readability    
+            writer.writerow('')
 
 def file_input(file_name):
    
@@ -562,15 +565,7 @@ def file_input(file_name):
         for a_line in file:
            main_split(a_line.rstrip('\n'))
 
-#this program code is used for testing purposes only
-program = """a = 16+7
-b = 16-2*32
-c = 7+6-3
-a = a+b-c
-"""
 
 #file with code that will be parsed
 file = 'input_text.txt'
 file_input(file)
-
-#main_split(program)
