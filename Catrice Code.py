@@ -134,6 +134,10 @@ def main_split(line):
             determine_zero_flag(result)
             determine_overflow_flag(integer_list)
         
+        
+        #lines 142 - 144, lines 148-169 will be removed for final submisison
+        #I did not delete them just in case Ibaad or Nick need them for testing
+        #purposes
         #print HLC        
         print(line)
         
@@ -143,6 +147,13 @@ def main_split(line):
                       else token for token in tokens]
         machine_code_y = translate_to_machine_code(hex_tokens)
         print(machine_code_y)
+        
+        #translate to opcodes
+        #Split the YMC into individual lines and strip it down
+        ymc_instructions = machine_code_y.strip().split('\n')
+        mc_instructions_hex = [ymc_to_mc(instruction) for instruction in ymc_instructions if instruction]
+        for instruction in mc_instructions_hex:
+            print(instruction)
         
         #print relevant dictionaries
         if(number_integers == 2 or number_integers == 3):
@@ -511,6 +522,32 @@ def translate_to_machine_code(hex_token_list):
     
     return '\n'.join(instructions)
 
+def ymc_to_mc(instruction_str):
+    
+    #Split instructions into components by the comma
+    components = instruction_str.split(',')
+    
+    #Get the mnemonic without spaces
+    operator_mnemonic = components[0].split()[0].strip().lower() 
+    
+    #Retrieve the corresponding opcode
+    opcode = opcodes.get(operator_mnemonic, "")  
+    
+    operand_parts = [part.strip() for part in components[1:]]  
+    operand_components = []
+    
+    for part in operand_parts:
+        
+        #If part is variable located in register
+        if part in registers:  
+            operand_components.append(registers[part][0])
+        
+        #If part is number
+        else: 
+            operand_components.append(part)
+    
+    mc_instruction = f"{opcode} {' '.join(operand_components)}"
+    return mc_instruction
 
 def csv_output(input_line, token_hex_list):
     
@@ -521,26 +558,47 @@ def csv_output(input_line, token_hex_list):
         # Create a CSV writer object
         writer = csv.writer(csv_file)
         
-        #write HLC to CSV
-        writer.writerow([input_line])
+        if input_line != "":
+            #write HLC to CSV
+            writer.writerow(["HLC:"])
+            writer.writerow([input_line])
+            writer.writerow('')
+        
+        if 'signed' in input_line.lower() or 'unsigned'  in input_line.lower():
+            writer.writerow(['----------------------------------------------'])
 
         #token_hex_list None if blank line
         if token_hex_list is not None:
+
             
             #write YMC assembly language to CSV
+            writer.writerow(["YMC Assembly:"])
             machine_code_y = translate_to_machine_code(token_hex_list)
             writer.writerow([machine_code_y])
+            writer.writerow('')
+
+            #write opcodes
+            writer.writerow(["YMC Encoding:"])
+            ymc_instructions = machine_code_y.strip().split('\n')
+            mc_instructions_hex = [ymc_to_mc(instruction) for instruction in ymc_instructions if instruction]
+            for instruction in mc_instructions_hex:
+                writer.writerow([instruction])
+            writer.writerow('')
+
         
             #write flag values to CSV
+            writer.writerow(["Flags:"])
             for key, value in flags.items():
                 writer.writerow([f'{key}: {value}'])
+            writer.writerow('')
+            
                 
             #Write modified registers to CSV
             modified_registers_line = ", ".join(key for key, value in registers.items() if value[1] is not None)
             writer.writerow(["Modified registers: " + modified_registers_line])
             
-            #new line between each new command for readability    
-            writer.writerow('')
+            #dashed line between each new command for readability    
+            writer.writerow(['----------------------------------------------'])
 
 
 def file_input(file_name):
