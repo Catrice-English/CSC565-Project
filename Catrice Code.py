@@ -25,24 +25,15 @@ registers = {
     'edx': None
 }
 
-#variable values
+#variable values - first column is memory address, second column is value of
+#variable, third column is variables sign status
 variable_values = {
-    'a': None,
-    'b': None,
-    'c': None,
-    'x': None,
-    'y': None,
-    'z': None
-}
-
-#store whether variables are signed or unsigned
-variables_sign_status = {
-    'a': None,
-    'b': None,
-    'c': None,
-    'x': None,
-    'y': None,
-    'z': None
+    'a': ['000', None, None],
+    'b': ['001', None, None],
+    'c': ['002', None, None],
+    'x': ['003', None, None],
+    'y': ['004', None, None],
+    'z': ['005', None, None]
 }
 
 
@@ -142,7 +133,7 @@ def main_split(line):
        
         #assign result to variable in variable_values dictionary
         if tokens[0] in variable_values:
-            variable_values[tokens[0]] = result
+            variable_values[tokens[0]][1] = result
                 
         #set flags if arithmetic 
         if(number_integers == 2 or number_integers == 3):
@@ -186,8 +177,8 @@ def signed_unsigned(list_tokens):
     
     for i in range(1, len(list_tokens)):
         variable_name = list_tokens[i]
-        if variable_name in variables_sign_status:
-            variables_sign_status[variable_name] = list_tokens[0]  
+        if variable_name in variable_values:
+            variable_values[variable_name][2] = list_tokens[0]  
             
             
 def move_mem_register(list_tokens):
@@ -196,8 +187,8 @@ def move_mem_register(list_tokens):
         if list_tokens[i] in variable_values:
             for register_name in registers:
                 if registers[register_name] is None:
-                    registers[register_name] = variable_values[list_tokens[i]]
-                    list_tokens[i] = str(variable_values[list_tokens[i]])
+                    registers[register_name] = variable_values[list_tokens[i]][1]
+                    list_tokens[i] = str(variable_values[list_tokens[i]][1])
                     break    
                 
     return list_tokens
@@ -210,7 +201,7 @@ def not_signed_unsigned(list_tokens):
     num_integers = sum(isinstance(x, int) for x in int_list)
     
     #look up variables sign status
-    variable_sign = variables_sign_status[list_tokens[0]]
+    variable_sign = variable_values[list_tokens[0]][2]
     
     # Convert tokens list. Start from the second element.
     if (variable_sign == 'signed'):
@@ -542,6 +533,7 @@ def csv_output(input_line, token_hex_list):
         #write HLC to CSV
         writer.writerow([input_line])
         
+        #token_hex_list None if blank line
         if token_hex_list is not None:
             
             #write YMC assembly language to CSV
