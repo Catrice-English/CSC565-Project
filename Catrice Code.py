@@ -449,7 +449,6 @@ def binary_string_to_signed_int(binary_str):
     return signed_int
 
 
-
 #Convert decimal inputs to Hex values
 def convert_operands_to_hex(operand, bit_width=8):
     
@@ -548,8 +547,14 @@ def csv_output(input_line, token_hex_list):
             for key, value in flags.items():
                 writer.writerow([f'{key}: {value}'])
                 
+            #Write modified registers to CSV
+            modified_registers_line = ", ".join(key for key, value in registers.items() if value is not None)
+            writer.writerow(["Modified registers: " + modified_registers_line])
+            
             #new line between each new command for readability    
             writer.writerow('')
+            
+            #
 
 def file_input(file_name):
    
