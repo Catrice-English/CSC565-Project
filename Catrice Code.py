@@ -131,6 +131,7 @@ def main_split(line):
         #if line read in is not a variable declaration line
         integer_list, number_integers = not_signed_unsigned(tokens)
         
+
         #determine appropriate arithmetic to perform based on number of operands
         if (number_integers == 2):
             result = two_operand_arithmetic(integer_list)
@@ -138,7 +139,7 @@ def main_split(line):
             result = three_operand_arithmetic(integer_list)
         else: #mov operation
             result = integer_list[2]
-        
+       
         #assign result to variable in variable_values dictionary
         if tokens[0] in variable_values:
             variable_values[tokens[0]] = result
@@ -545,7 +546,7 @@ def csv_output(input_line, token_hex_list):
             
             #write YMC assembly language to CSV
             machine_code_y = translate_to_machine_code(token_hex_list)
-            writer.writerow(machine_code_y)
+            writer.writerow([machine_code_y])
         
             #write flag values to CSV
             for key, value in flags.items():
