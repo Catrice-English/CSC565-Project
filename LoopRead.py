@@ -17,7 +17,17 @@ variable_addresses = {
     'z': z
     }
 
-testfile = r"""if c <= 10
+testfile = r"""unsigned a b c
+signed x y z
+
+a = 3
+b = 15 + a
+c = b * a / 10
+
+x = -5
+y = 13
+
+if c <= 10
     x = y + 10
 else
     x = y - 20
@@ -149,6 +159,8 @@ def classifier(list_ex):
                 while_loop(i, 4)
             elif first_words[2] == '<=':
                 while_loop(i, 5)
+        elif first_words[0] == 'unsigned' or first_words[0] == 'signed':
+            continue
         else:
             print('This is an operand statement')
 
