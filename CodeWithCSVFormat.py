@@ -304,6 +304,12 @@ def three_operand_arithmetic(integer_list):
                 intermediateresult = two_operand_add(registers['eax'][1], registers['ebx'][1])
                 registers['eax'][1] = intermediateresult
                 finalresult = two_operand_div(registers['eax'][1], registers['ecx'][1])
+            
+            #addadd
+            elif(operator2 == '+'):
+                intermediateresult = two_operand_add(registers['eax'][1], registers['ebx'][1])
+                registers['eax'][1] = intermediateresult
+                finalresult = two_operand_add(registers['eax'][1], registers['ecx'][1])
                 
         elif (operator1 == '-'):
             
@@ -324,6 +330,12 @@ def three_operand_arithmetic(integer_list):
                 intermediateresult = two_operand_sub(registers['eax'][1], registers['ebx'][1])
                 registers['eax'][1] = intermediateresult
                 finalresult = two_operand_div(registers['eax'][1], registers['ecx'][1])
+            
+            #subsub
+            elif(operator2 == '-'):
+                intermediateresult = two_operand_sub(registers['eax'][1], registers['ebx'][1])
+                registers['eax'][1] = intermediateresult
+                finalresult = two_operand_sub(registers['eax'][1], registers['ecx'][1])
         
         elif(operator1 == '*'):
             
@@ -344,6 +356,12 @@ def three_operand_arithmetic(integer_list):
                 intermediateresult = two_operand_mult(registers['eax'][1], registers['ebx'][1])
                 registers['eax'][1] = intermediateresult
                 finalresult = two_operand_div(registers['eax'][1], registers['ecx'][1])
+            
+            #multmult
+            elif(operator2 == '*'):
+                intermediateresult = two_operand_mult(registers['eax'][1], registers['ebx'][1])
+                registers['eax'][1] = intermediateresult
+                finalresult = two_operand_mult(registers['eax'][1], registers['ecx'][1])
         
         elif (operator1 == '/'):
             
@@ -364,7 +382,13 @@ def three_operand_arithmetic(integer_list):
                 intermediateresult = two_operand_div(registers['eax'][1], registers['ebx'][1])
                 registers['eax'][1] = intermediateresult
                 finalresult = two_operand_mult(registers['eax'][1], registers['ecx'][1])
-    
+            
+            #divdiv
+            elif(operator2 == '/'):
+                intermediateresult = two_operand_div(registers['eax'][1], registers['ebx'][1])
+                registers['eax'][1] = intermediateresult
+                finalresult = two_operand_div(registers['eax'][1], registers['ecx'][1])
+            
     registers['eax'][1] = finalresult
                     
 
@@ -495,51 +519,55 @@ def convert_operands_to_hex(operand, bit_width=8):
 #Perform the translation
 def translate_to_machine_code(hex_token_list):
     
-    instructions = []
+    instructions=[]
     
     # If two operations exist
     if len(hex_token_list) == 7:
   
-        # Get the compound operation mnemonic based on the operators
-        operation_mnemonic = operator_to_machine_code.get((hex_token_list[3], hex_token_list[5]))
+        #Get the compound operation mnemonic based on the operators
+        operation_mnemonic = operator_to_machine_code.get((hex_token_list[3],\
+                                                           hex_token_list[5]))
         if not operation_mnemonic:
             raise ValueError("Unsupported operation pair")
             
-        # Write storage instructions
+        #Write storage instructions
         instructions.extend([
             f"MOV {list(registers.keys())[0]}, {hex_token_list[2].zfill(3)}",
             f"MOV {list(registers.keys())[1]}, {hex_token_list[4].zfill(3)}",
             f"MOV {list(registers.keys())[2]}, {hex_token_list[6].zfill(3)}",
-        ])
+            ])
         
-    # If single operation    
+    #If single operation    
     elif len(hex_token_list) == 5:
         operation_mnemonic = operator_to_machine_code.get(hex_token_list[3])
         if not operation_mnemonic:
             raise ValueError("Unsupported operator")
             
-        # Write storage instructions
+        #Write storage instructions
         instructions.extend([
-            f"MOV {list(registers.keys())[0]}, {hex_token_list[2].zfill(3)}",
-            f"MOV {list(registers.keys())[1]}, {hex_token_list[4].zfill(3)}",
+        f"MOV {list(registers.keys())[0]}, {hex_token_list[2].zfill(3)}",
+        f"MOV {list(registers.keys())[1]}, {hex_token_list[4].zfill(3)}",
         ])
     
-    # mov operation
+    #mov operation
     elif len(hex_token_list) == 3:
         instructions.extend([
-            f"MOV {list(registers.keys())[0]}, {hex_token_list[2].zfill(3)}",
+        f"MOV {list(registers.keys())[0]}, {hex_token_list[2].zfill(3)}",
         ])
 
-    # Finalize the instructions to include the operation(s)
-    # Two operations
+    #Finalize the instructions to include the operation(s)
+    #Two operations
     if len(hex_token_list) == 7:
-        instructions.append(f"{operation_mnemonic} {list(registers.keys())[0]}, {list(registers.keys())[1]}, {list(registers.keys())[2]}")
-    # Single operation    
+        instructions.append(f"{operation_mnemonic} {list(registers.keys())[0]}, \
+                            {list(registers.keys())[1]}, \
+                            {list(registers.keys())[2]}")
+    #Single operation    
     elif len(hex_token_list) == 5:
-        instructions.append(f"{operation_mnemonic} {list(registers.keys())[0]}, {list(registers.keys())[1]}")
+        instructions.append(f"{operation_mnemonic} {list(registers.keys())[0]}, \
+                            {list(registers.keys())[1]}")
     
     return '\n'.join(instructions)
-    
+
 def ymc_to_mc(instruction_str):
     
     #Split instructions into components by the comma
