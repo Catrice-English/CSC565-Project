@@ -104,28 +104,37 @@ def main_split(line):
         
     #determine if line is variable declaration line
     elif tokens[0] in ['unsigned', 'signed']:
+        
+        #if the value located at tokens[0] is either 'signed' or 'unsigned'
         signed_unsigned(tokens)
+        
         tokens = None
         num_modified_registers = 0
 
     #line is an arithmetic line    
     else:
       
-        #process negative numbers
+        #process negative numbers and convert numbers from the tokens list
+        #from string to int
         integer_list = not_signed_unsigned(tokens)
+        
         
         #move variable or immediate value to a register for computation. Count
         #the number of registers modified
         num_modified_registers, tokens = move_mem_register(integer_list)
         
-        #determine appropriate arithmetic to perform based on number of operands
+        
+        #determine appropriate arithmetic to perform based on number of
+        #registers modified as the registers always hold the integer values
+        #before they are moved to memory.
         if (num_modified_registers == 2):
             two_operand_arithmetic(integer_list)
         elif (num_modified_registers == 3):
             three_operand_arithmetic(integer_list)
       
        
-        #assign result to variable in variable_values dictionary
+        #assign result located in register eax to variable in 
+        #variable_values dictionary. Variable_values dictionary represents memory
         if tokens[0] in variable_values:
             variable_values[tokens[0]][1] = registers['eax'][1]
 
@@ -153,9 +162,15 @@ def main_split(line):
 #function for variable declaration line to assign a variables sign status
 def signed_unsigned(list_tokens):
     
+    # Iterate over list_tokens starting from index 1
     for i in range(1, len(list_tokens)):
         variable_name = list_tokens[i]
+        
+        # Check if the variable_name exists in variable_values
         if variable_name in variable_values:
+            
+            #set variables sign status equal to the value located at 
+            #list_tokens[0].
             variable_values[variable_name][2] = list_tokens[0]  
 
 
@@ -168,10 +183,15 @@ def not_signed_unsigned(list_tokens):
     variable_sign = variable_values[list_tokens[0]][2]
 
     # Convert tokens list if negative value. Start from the second element.
+    #this will convert somthing that looks like ['1', '*', '-', '2'] to
+    #['1', '*', -2]
     if (variable_sign == 'signed'):
         i = 1
         while i < len(int_list):
             
+            #if token at i is an int, the token at before i is '-' and the
+            #the token at [i-2] is not an integer. if the token at [i-2] is an
+            #integer the '-' sign means minus not negative.
             if isinstance(int_list[i], int) and int_list[i - 1] == "-" and\
                not isinstance(int_list[i - 2], int):
                 neg_num = -int_list[i]
@@ -179,7 +199,8 @@ def not_signed_unsigned(list_tokens):
                 del int_list[i - 1]
             i += 1
     
-    #if int_list[i] is a variable look up value in memory
+    #if int_list[i] is a variable look up value in memory. This line will replace
+    #a variable in int_list with the value of the variable.
     for i in range(2, len(int_list)):
         if int_list[i] in variable_values:
             int_list[i] = variable_values[int_list[i]][1]          
@@ -191,18 +212,34 @@ def move_mem_register(list_tokens):
     count_mod_reg = 0
     modified_list_tokens = list_tokens[:]
  
+    
     for i in range(2, len(modified_list_tokens)):
+        
+        #check if the token in modified_token_list exists in variable_values.
+        #For example, check if the token is 'a' and if 'a' exists in variable_vaalues
         if modified_list_tokens[i] in variable_values:
             for register_name in registers:
+                
+                #iterate through the registers until an empty one is found
                 if registers[register_name][1] is None:
+                    
+                    #assign the empty register to the value of the variable
+                    #located in memory
                     registers[register_name][1] = variable_values[list_tokens[i]][1]
+                    
                     modified_list_tokens[i] = str(variable_values[list_tokens[i]][1])
                     count_mod_reg +=1
                     break    
         
+        # Check if the token at index i is an integer
         elif isinstance(list_tokens[i], int):
             for register_name, values in registers.items():
+                
+                #iterate through the registers until an empty one is found
                 if values[1] is None:
+                    
+                    #assign the empty register to the value of the integer
+                    #located at token[i]
                     registers[register_name][1] = list_tokens[i]
                     modified_list_tokens[i] = str(modified_list_tokens[i])
                     count_mod_reg +=1
@@ -218,16 +255,20 @@ def two_operand_arithmetic(integer_list):
     result = 0
     
     if (integer_list[1] == '='):
-
+        
+        #add
         if (operator == '+'):
             result = two_operand_add(registers['eax'][1], registers['ebx'][1])
-                        
+        
+        #sub                
         elif (operator == '-'):
             result = two_operand_sub(registers['eax'][1], registers['ebx'][1])
-                        
+            
+        #mult                
         elif (operator == '*'):
             result = two_operand_mult(registers['eax'][1], registers['ebx'][1])
-                        
+        
+        #div                
         elif (operator == '/'):
             result = two_operand_div(registers['eax'][1], registers['ebx'][1])
     
@@ -348,6 +389,8 @@ def determine_carry_flag(final_result):
         
     #converts signed representation to unsigned
     if final_result < 0:
+        
+        #calculate twos complelemt for negative numbers
         final_result += 2 ** 8
         
     if final_result > max_value:
@@ -395,12 +438,16 @@ def determine_overflow_flag(arg_list):
     #convert decimal to binary string
     op1_binary = bin(arg_list[2])[2:].zfill(8)
     op2_binary = bin(arg_list[4])[2:].zfill(8)
+    
+    #determine what the signed value is from the binary string
     op1_signed_num = binary_string_to_signed_int(op1_binary)
     op2_signed_num = binary_string_to_signed_int(op2_binary)
+    
+    
     operator1 = arg_list[3]
     result = operator_mapping[operator1](op1_signed_num, op2_signed_num)
 
-    
+    #if there are 3 operands
     if len(arg_list) == 7:
         operator2 = arg_list[5]
         op3_binary = bin(arg_list[6])[2:].zfill(8)
@@ -422,8 +469,10 @@ def binary_string_to_signed_int(binary_str):
 
     
     if binary_str[0] == '1':
+        
         # Convert binary string to signed integer using two's complement
         signed_int = -((int(''.join('1' if bit == '0' else '0' for bit in binary_str), 2) + 1) % (1 << len(binary_str)))
+    
     else:
         signed_int = int(binary_str, 2)
     
@@ -565,8 +614,9 @@ def csv_output(a_line, tokens_list, number_mod_reg):
     combination=[]
     assembly=[]
     
-    #HLC
-    combination.append(a_line)
+    #Output HLC to CSV file if a_line is not empty
+    if a_line.strip():
+        combination.append(a_line)
 
     if tokens_list is not None: 
         
