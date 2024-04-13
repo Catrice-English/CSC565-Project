@@ -118,7 +118,6 @@ def main_split(line):
         #from string to int
         integer_list = not_signed_unsigned(tokens)
         
-        
         #move variable or immediate value to a register for computation. Count
         #the number of registers modified
         num_modified_registers, tokens = move_mem_register(integer_list)
@@ -161,6 +160,7 @@ def main_split(line):
 
 #function for variable declaration line to assign a variables sign status
 def signed_unsigned(list_tokens):
+   
     
     # Iterate over list_tokens starting from index 1
     for i in range(1, len(list_tokens)):
@@ -176,7 +176,7 @@ def signed_unsigned(list_tokens):
 
 def not_signed_unsigned(list_tokens):                
                 
-    #count number of integers in token list.
+    #convert integers from string to int type, i.e. ['2', +, '3'] to [2, '+', 3]
     int_list = [int(x) if x.isdigit() else x for x in list_tokens]
     
     #look up variables sign status
@@ -200,7 +200,8 @@ def not_signed_unsigned(list_tokens):
             i += 1
     
     #if int_list[i] is a variable look up value in memory. This line will replace
-    #a variable in int_list with the value of the variable.
+    #a variable in int_list with the value of the variable, i.e. ['a', '+', 'b']
+    #to [5, '+', 2].
     for i in range(2, len(int_list)):
         if int_list[i] in variable_values:
             int_list[i] = variable_values[int_list[i]][1]          
@@ -216,7 +217,7 @@ def move_mem_register(list_tokens):
     for i in range(2, len(modified_list_tokens)):
         
         #check if the token in modified_token_list exists in variable_values.
-        #For example, check if the token is 'a' and if 'a' exists in variable_vaalues
+        #For example, check if the token is 'a' and if 'a' exists in variable_values
         if modified_list_tokens[i] in variable_values:
             for register_name in registers:
                 
@@ -272,7 +273,7 @@ def two_operand_arithmetic(integer_list):
         elif (operator == '/'):
             result = two_operand_div(registers['eax'][1], registers['ebx'][1])
     
-    registers['ebx'][1] = result
+    registers['eax'][1] = result
                 
  
 def three_operand_arithmetic(integer_list):
@@ -399,22 +400,11 @@ def determine_carry_flag(final_result):
         flags['carry'] = 0
             
 def determine_sign_flag(final_result):    
-    
-    # Convert decimal to binary string
-    binary_str = bin(final_result)[2:]
-    
-    # Remove the 'b' prefix
-    if binary_str.startswith('b'):
-        binary_str = binary_str[1:]
-    
-    # Keep only the last 8 bits
-    binary_str_8bits = binary_str[-8:]
-    
-    if len(binary_str_8bits) < 8:
-        binary_str_8bits = binary_str_8bits.zfill(8)
-    
-    most_significant_bit = int(binary_str_8bits[0])
-    flags['sign'] = most_significant_bit 
+    print(final_result)
+    if final_result < 0:
+        flags['sign'] = 1
+    else:
+        flags['sign'] = 0
     
 
 def determine_zero_flag(final_result):
@@ -617,6 +607,7 @@ def csv_output(a_line, tokens_list, number_mod_reg):
     #Output HLC to CSV file if a_line is not empty
     if a_line.strip():
         combination.append(a_line)
+
 
     if tokens_list is not None: 
         
