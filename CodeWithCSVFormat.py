@@ -400,7 +400,7 @@ def determine_carry_flag(final_result):
         flags['carry'] = 0
             
 def determine_sign_flag(final_result):    
-    print(final_result)
+    
     if final_result < 0:
         flags['sign'] = 1
     else:
