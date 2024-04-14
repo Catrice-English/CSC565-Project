@@ -476,20 +476,15 @@ def determine_overflow_flag(arg_list):
 
 def binary_string_to_signed_int(binary_str):
     
-    # Remove the 'b' prefix
-    if binary_str.startswith('b'):
-        binary_str = binary_str[1:].zfill(8)
-
     #removes 'b' if it appears anywhere in binary string
     binary_str = binary_str.replace('b', '')
     
+    signed_int = int(binary_str, 2)
+    
     if binary_str[0] == '1':
         
-        # Convert binary string to signed integer using two's complement
-        signed_int = -((int(''.join('1' if bit == '0' else '0' for bit in binary_str), 2) + 1) % (1 << len(binary_str)))
-    
-    else:
-        signed_int = int(binary_str, 2)
+        # subtract the value of first binary digit if there is a 1 in its place
+        signed_int -= 2 ** len(binary_str)
     
     return signed_int
 
