@@ -151,13 +151,12 @@ def main_split(line):
     
     #output to csv
     csv_output(line, tokens, num_modified_registers)
-
+    
     #reset the registers
     for items in registers:
         registers[items][1] = None
     
     
-
 #function for variable declaration line to assign a variables sign status
 def signed_unsigned(list_tokens):
    
@@ -481,6 +480,8 @@ def binary_string_to_signed_int(binary_str):
     if binary_str.startswith('b'):
         binary_str = binary_str[1:].zfill(8)
 
+    #removes 'b' if it appears anywhere in binary string
+    binary_str = binary_str.replace('b', '')
     
     if binary_str[0] == '1':
         
