@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Apr 19 21:20:16 2024
+
+@author: Catrice English, Nicholas Grencz, Ibaad Husain
+"""
+
 import re
 import csv
 import math
@@ -590,9 +597,12 @@ def csv_output(list_ex):
         writer.writerow(headers)
         writer.writerows(list_ex)
 
-split_file = line_splitter(testfile2)
+split_file = line_splitter(testfile)
 classifier(split_file)
 csv_output(output_rows)
+
+
+
 
 #for i in variable_values:
 #    print(variable_values[i])
